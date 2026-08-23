@@ -4,20 +4,27 @@ Convierte archivos (PDF, Word, PowerPoint, Excel, HTML, imágenes, audio, etc.) 
 
 ## Uso rápido (sin instalar nada)
 
-Descargá el ejecutable desde la sección [Releases](../../releases) de este repo. No necesitan Python ni ninguna otra instalación.
+Descargá lo que corresponda desde la sección [Releases](../../releases) de este repo. No necesitan Python ni ninguna otra instalación.
 
-- **`conversor.exe`** — interfaz gráfica, pensada para cualquiera. Agregás archivos o carpetas con botones, elegís opciones y apretás Convertir.
+**Windows**
+- **`conversor.exe`** — interfaz gráfica, pensada para cualquiera.
 - **`conversor-cli.exe`** — versión de consola, para uso avanzado o scripting.
+
+**macOS**
+- **`conversor-mac.zip`** — descomprimilo y vas a tener `conversor.app`, la interfaz gráfica.
+- **`conversor-cli`** — versión de consola. Dale permiso de ejecución antes de usarlo: `chmod +x conversor-cli`.
+
+> Como no están firmados con un certificado de desarrollador de Apple ($99/año), la primera vez que abras `conversor.app` macOS va a avisar que es de un "desarrollador no identificado". Click derecho (o Control+click) sobre el ícono → **Abrir** → confirmar. Solo hace falta la primera vez.
 
 ## Interfaz gráfica
 
-Doble clic en `conversor.exe`:
+Doble clic en `conversor.exe` (Windows) o `conversor.app` (macOS):
 
 1. **Agregar archivos...** / **Agregar carpeta...** para sumar lo que querés convertir (con Subir/Bajar podés reordenar la lista).
 2. Opcional: elegir una carpeta de salida, o activar **Unificar todo en un solo archivo** para combinar todo en un único `.md` (en el orden de la lista).
 3. **Convertir**. El resultado y cualquier error queda en el registro de abajo.
 
-## Consola (`conversor` / `conversor-cli.exe`)
+## Consola (`conversor` / `conversor-cli.exe` / `conversor-cli`)
 
 ```
 conversor
@@ -37,7 +44,7 @@ conversor -u                           # combina varios archivos en un solo .md,
 
 ## Desarrollo
 
-Requiere [uv](https://docs.astral.sh/uv/).
+Requiere [uv](https://docs.astral.sh/uv/). Funciona en Windows, macOS y Linux.
 
 ```
 uv sync
@@ -51,12 +58,20 @@ Para instalar la CLI como comando global (`conversor` disponible en cualquier co
 uv tool install --editable .
 ```
 
-## Generar los .exe
+## Generar los ejecutables
 
+Windows:
 ```
 .\build.ps1
 ```
+Deja `dist\conversor.exe` (interfaz gráfica) y `dist\conversor-cli.exe` (consola).
 
-Deja `dist\conversor.exe` (interfaz gráfica) y `dist\conversor-cli.exe` (consola). También se generan automáticamente en cada tag `vX.Y.Z` publicado (ver `.github/workflows/release.yml`), quedando adjuntos a la Release correspondiente.
+macOS / Linux:
+```
+bash build.sh
+```
+Deja `dist/conversor.app` (interfaz gráfica, solo macOS con `--windowed`) y `dist/conversor-cli` (consola).
 
-Si `assets\icon.ico` existe, se usa como ícono de ambos ejecutables.
+Ambos se generan automáticamente en cada tag `vX.Y.Z` publicado (ver `.github/workflows/release.yml`), quedando adjuntos a la Release correspondiente.
+
+Si `assets/icon.ico` (Windows) o `assets/icon.icns` (macOS) existen, se usan como ícono de los ejecutables.

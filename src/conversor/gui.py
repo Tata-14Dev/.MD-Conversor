@@ -44,10 +44,19 @@ class ConversorApp:
         self._build_layout()
 
     def _set_icon(self) -> None:
+        if sys.platform == "win32":
+            try:
+                ico = _resource_path("assets", "icon.ico")
+                if ico.exists():
+                    self.root.iconbitmap(default=str(ico))
+                    return
+            except Exception:
+                pass
         try:
-            ico = _resource_path("assets", "icon.ico")
-            if ico.exists():
-                self.root.iconbitmap(default=str(ico))
+            png = _resource_path("assets", "logo.png")
+            if png.exists():
+                self._icon_image = tk.PhotoImage(file=str(png))
+                self.root.iconphoto(True, self._icon_image)
         except Exception:
             pass
 
