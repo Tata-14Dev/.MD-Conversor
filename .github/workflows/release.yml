@@ -27,25 +27,3 @@ jobs:
           files: |
             dist/conversor.exe
             dist/conversor-cli.exe
-
-  build-macos:
-    needs: build-windows
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Instalar uv
-        uses: astral-sh/setup-uv@v3
-
-      - name: Generar los ejecutables
-        run: bash build.sh
-
-      - name: Comprimir conversor.app
-        run: ditto -c -k --sequesterRsrc --keepParent dist/conversor.app dist/conversor-mac.zip
-
-      - name: Publicar en la Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/conversor-mac.zip
-            dist/conversor-cli

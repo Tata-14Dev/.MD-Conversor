@@ -14,9 +14,6 @@ MIN_CHARS_PER_PAGE = 20
 _TESSERACT_CANDIDATES = [
     r"C:\Program Files\Tesseract-OCR\tesseract.exe",
     r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
-    "/opt/homebrew/bin/tesseract",
-    "/usr/local/bin/tesseract",
-    "/usr/bin/tesseract",
 ]
 
 
@@ -45,9 +42,8 @@ def _ensure_configured() -> None:
     cmd = _find_tesseract_cmd()
     if cmd is None:
         raise RuntimeError(
-            "No se encontró Tesseract OCR instalado. Instalalo y volvé a intentar "
-            "(Windows: winget install UB-Mannheim.TesseractOCR / "
-            "macOS: brew install tesseract tesseract-lang)."
+            "No se encontró Tesseract OCR instalado. Instalalo con "
+            "'winget install UB-Mannheim.TesseractOCR' y volvé a intentar."
         )
     pytesseract.pytesseract.tesseract_cmd = cmd
 

@@ -6,11 +6,6 @@ try:
 except ImportError:
     msvcrt = None
 
-try:
-    import readline
-except ImportError:
-    readline = None
-
 
 def _split(text: str) -> tuple[str, str]:
     idx = max(text.rfind("\\"), text.rfind("/"))
@@ -92,52 +87,7 @@ def _read_path_with_completion(prompt: str) -> str:
         last_matches = []
 
 
-def _readline_completer(text: str, state: int) -> str | None:
-    quote = text[:1] if text[:1] in ("'", '"') else ""
-    body = text[len(quote):]
-
-    base_dir, prefix = _split(body)
-    lookup_dir = os.path.expandvars(base_dir) if base_dir else "."
-    try:
-        entries = os.listdir(lookup_dir)
-    except OSError:
-        entries = []
-
-    prefix_lower = prefix.lower()
-    names = sorted(e for e in entries if e.lower().startswith(prefix_lower))
-    candidates = []
-    for name in names:
-        full = f"{quote}{base_dir}{name}"
-        if os.path.isdir(os.path.join(lookup_dir, name)):
-            full += os.sep
-        candidates.append(full)
-
-    if state < len(candidates):
-        return candidates[state]
-    return None
-
-
-def _read_path_with_readline(prompt: str) -> str:
-    old_completer = readline.get_completer()
-    old_delims = readline.get_completer_delims()
-    readline.set_completer(_readline_completer)
-    readline.set_completer_delims("\t\n")
-    if "libedit" in (readline.__doc__ or ""):
-        readline.parse_and_bind("bind ^I rl_complete")
-    else:
-        readline.parse_and_bind("tab: complete")
-    try:
-        return input(prompt)
-    finally:
-        readline.set_completer(old_completer)
-        readline.set_completer_delims(old_delims)
-
-
 def prompt_path(prompt: str) -> str:
-    if not sys.stdin.isatty():
+    if msvcrt is None or not sys.stdin.isatty():
         return input(prompt)
-    if msvcrt is not None:
-        return _read_path_with_completion(prompt)
-    if readline is not None:
-        return _read_path_with_readline(prompt)
-    return input(prompt)
+    return _read_path_with_completion(prompt)
