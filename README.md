@@ -16,6 +16,19 @@ Descargá lo que corresponda desde la sección [Releases](../../releases) de est
 
 > Como no están firmados con un certificado de desarrollador de Apple ($99/año), la primera vez que abras `conversor.app` macOS va a avisar que es de un "desarrollador no identificado". Click derecho (o Control+click) sobre el ícono → **Abrir** → confirmar. Solo hace falta la primera vez.
 
+## OCR (imágenes y PDF escaneados)
+
+Si convertís una imagen (`.png`, `.jpg`...) o un PDF que resulta ser un escaneo (sin texto seleccionable, por ejemplo apuntes fotografiados), el conversor detecta automáticamente que necesita OCR y usa **Tesseract** para leer el texto (en español e inglés). Un PDF normal con texto seleccionable sigue extrayéndose directo, sin pasar por OCR.
+
+Para que esto funcione hace falta tener **Tesseract OCR** instalado en la máquina (no viene incluido en el ejecutable, como pasa con `ffmpeg` para audio):
+
+- **Windows**: `winget install UB-Mannheim.TesseractOCR`
+- **macOS**: `brew install tesseract`
+
+Si no está instalado, el conversor te lo va a avisar claramente en el registro de errores en vez de devolver un `.md` vacío.
+
+> Nota sobre calidad: Tesseract anda bien con texto impreso/tipeado (diapositivas escaneadas, fotocopias). Con **escritura a mano** los resultados van a ser limitados — es una limitación del motor gratuito, no de la configuración.
+
 ## Interfaz gráfica
 
 Doble clic en `conversor.exe` (Windows) o `conversor.app` (macOS):

@@ -3,7 +3,27 @@ from typing import Callable
 
 from markitdown import MarkItDown
 
+from conversor import ocr
+
 SKIP_SUFFIXES = {".md"}
+
+
+def _convert_text(md: MarkItDown, src: Path) -> str:
+    suffix = src.suffix.lower()
+
+    if suffix in ocr.IMAGE_EXTENSIONS:
+        text = ocr.ocr_image(src)
+        return text or md.convert(str(src)).text_content
+
+    if suffix == ".pdf":
+        text = md.convert(str(src)).text_content
+        if ocr.pdf_needs_ocr(src, text):
+            ocr_text = ocr.ocr_pdf(src)
+            if ocr_text:
+                return ocr_text
+        return text
+
+    return md.convert(str(src)).text_content
 
 
 def iter_input_files(paths: list[Path], recursive: bool) -> tuple[list[Path], list[Path]]:
@@ -23,18 +43,18 @@ def iter_input_files(paths: list[Path], recursive: bool) -> tuple[list[Path], li
 
 
 def convert_file(md: MarkItDown, src: Path, output_dir: Path | None) -> Path:
-    result = md.convert(str(src))
+    text = _convert_text(md, src)
     dest_dir = output_dir if output_dir is not None else src.parent
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest = dest_dir / (src.stem + ".md")
-    dest.write_text(result.text_content, encoding="utf-8")
+    dest.write_text(text, encoding="utf-8")
     return dest
 
 
 def read_as_markdown(md: MarkItDown, src: Path) -> str:
     if src.suffix.lower() == ".md":
         return src.read_text(encoding="utf-8")
-    return md.convert(str(src)).text_content
+    return _convert_text(md, src)
 
 
 def convert_many(

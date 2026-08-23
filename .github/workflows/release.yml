@@ -17,29 +17,9 @@ jobs:
       - name: Instalar uv
         uses: astral-sh/setup-uv@v3
 
-      - name: Instalar dependencias
-        run: uv sync --dev
-
-      - name: Generar conversor.exe (interfaz grafica)
+      - name: Generar los ejecutables
         shell: pwsh
-        run: |
-          $iconArgs = @()
-          if (Test-Path "assets\icon.ico") { $iconArgs = @("--icon", "assets\icon.ico") }
-          uv run pyinstaller --onefile --windowed --name conversor `
-            --collect-all markitdown --collect-all magika `
-            --add-data "assets;assets" `
-            @iconArgs `
-            gui_main.py
-
-      - name: Generar conversor-cli.exe (consola)
-        shell: pwsh
-        run: |
-          $iconArgs = @()
-          if (Test-Path "assets\icon.ico") { $iconArgs = @("--icon", "assets\icon.ico") }
-          uv run pyinstaller --onefile --console --name conversor-cli `
-            --collect-all markitdown --collect-all magika `
-            @iconArgs `
-            main.py
+        run: .\build.ps1
 
       - name: Publicar en la Release
         uses: softprops/action-gh-release@v2
@@ -57,10 +37,7 @@ jobs:
       - name: Instalar uv
         uses: astral-sh/setup-uv@v3
 
-      - name: Instalar dependencias
-        run: uv sync --dev
-
-      - name: Generar conversor.app (interfaz grafica) y conversor-cli (consola)
+      - name: Generar los ejecutables
         run: bash build.sh
 
       - name: Comprimir conversor.app

@@ -12,6 +12,15 @@ fi
 
 uv sync --dev
 
+mkdir -p assets/tessdata
+for lang in spa eng; do
+    dest="assets/tessdata/$lang.traineddata"
+    if [ ! -f "$dest" ]; then
+        echo "Descargando datos de idioma para OCR: $lang..."
+        curl -LsSf -o "$dest" "https://github.com/tesseract-ocr/tessdata/raw/main/$lang.traineddata"
+    fi
+done
+
 rm -rf build dist conversor.spec conversor-cli.spec
 
 ICON_ARGS=()
@@ -29,6 +38,7 @@ uv run pyinstaller --onefile --windowed --name conversor \
 echo "Generando conversor-cli (consola)..."
 uv run pyinstaller --onefile --console --name conversor-cli \
     --collect-all markitdown --collect-all magika \
+    --add-data "assets:assets" \
     "${ICON_ARGS[@]}" \
     main.py
 

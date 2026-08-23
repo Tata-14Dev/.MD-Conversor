@@ -10,6 +10,15 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
 uv sync --dev
 if (-not $?) { exit 1 }
 
+New-Item -ItemType Directory -Force -Path "assets\tessdata" | Out-Null
+foreach ($lang in @("spa", "eng")) {
+    $dest = "assets\tessdata\$lang.traineddata"
+    if (-not (Test-Path $dest)) {
+        Write-Output "Descargando datos de idioma para OCR: $lang..."
+        Invoke-WebRequest -Uri "https://github.com/tesseract-ocr/tessdata/raw/main/$lang.traineddata" -OutFile $dest
+    }
+}
+
 Remove-Item -Recurse -Force build, dist, conversor.spec, conversor-cli.spec -ErrorAction SilentlyContinue
 
 $iconArgs = @()
@@ -28,6 +37,7 @@ if (-not $?) { exit 1 }
 Write-Output "Generando conversor-cli.exe (consola)..."
 uv run pyinstaller --onefile --console --name conversor-cli `
     --collect-all markitdown --collect-all magika `
+    --add-data "assets;assets" `
     @iconArgs `
     main.py
 if (-not $?) { exit 1 }
