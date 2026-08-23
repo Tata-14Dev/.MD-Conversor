@@ -1,0 +1,28 @@
+name: Build y publicar exe
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Instalar dependencias
+        run: uv sync --dev
+
+      - name: Generar conversor.exe
+        run: >
+          uv run pyinstaller --onefile --console --name conversor
+          --collect-all markitdown --collect-all magika main.py
+
+      - name: Publicar en la Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/conversor.exe
