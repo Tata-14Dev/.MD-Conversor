@@ -2,43 +2,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from markitdown import MarkItDown
-
 from conversor.completion import prompt_path
-
-SKIP_SUFFIXES = {".md"}
-
-
-def iter_input_files(paths: list[Path], recursive: bool) -> list[Path]:
-    files: list[Path] = []
-    for path in paths:
-        if path.is_dir():
-            pattern = "**/*" if recursive else "*"
-            files.extend(p for p in path.glob(pattern) if p.is_file())
-        elif path.is_file():
-            files.append(path)
-        else:
-            print(f"Aviso: no existe '{path}', se omite.", file=sys.stderr)
-    return [f for f in files if f.suffix.lower() not in SKIP_SUFFIXES]
-
-
-def convert_file(md: MarkItDown, src: Path, output_dir: Path | None) -> Path:
-    result = md.convert(str(src))
-    dest_dir = output_dir if output_dir is not None else src.parent
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    dest = dest_dir / (src.stem + ".md")
-    dest.write_text(result.text_content, encoding="utf-8")
-    return dest
-
-
-def read_as_markdown(md: MarkItDown, src: Path) -> str:
-    if src.suffix.lower() == ".md":
-        return src.read_text(encoding="utf-8")
-    return md.convert(str(src)).text_content
+from conversor.core import convert_many, iter_input_files, unify_files
 
 
 def run_unify_mode(output_dir: Path | None) -> None:
-    md = MarkItDown()
     ordered_files: list[Path] = []
     print("Modo unir: indicá los archivos uno por uno, en el orden en que querés que queden en el resultado final.")
     n = 1
@@ -68,24 +36,17 @@ def run_unify_mode(output_dir: Path | None) -> None:
         base_dir = output_dir if output_dir is not None else ordered_files[0].parent
         salida = base_dir / salida
 
-    secciones: list[str] = []
-    ok, failed = 0, 0
-    for src in ordered_files:
-        try:
-            texto = read_as_markdown(md, src)
-            secciones.append(f"## {src.stem}\n\n{texto.strip()}")
+    def on_result(src: Path, error: Exception | None) -> None:
+        if error is None:
             print(f"OK  {src}")
-            ok += 1
-        except Exception as exc:
-            print(f"ERROR {src}: {exc}", file=sys.stderr)
-            failed += 1
+        else:
+            print(f"ERROR {src}: {error}", file=sys.stderr)
 
-    if not secciones:
+    ok, failed = unify_files(ordered_files, salida, on_result)
+
+    if ok == 0:
         print("Ningún archivo pudo incluirse.", file=sys.stderr)
         sys.exit(1)
-
-    salida.parent.mkdir(parents=True, exist_ok=True)
-    salida.write_text("\n\n---\n\n".join(secciones), encoding="utf-8")
 
     print(f"\nCombinado -> {salida}")
     print(f"Listo: {ok} incluidos, {failed} con error.")
@@ -160,21 +121,20 @@ def main() -> None:
             sys.exit(1)
         paths = [path]
 
-    files = iter_input_files(paths, recursive)
+    files, missing = iter_input_files(paths, recursive)
+    for m in missing:
+        print(f"Aviso: no existe '{m}', se omite.", file=sys.stderr)
     if not files:
         print("No se encontraron archivos para convertir.", file=sys.stderr)
         sys.exit(1)
 
-    md = MarkItDown()
-    ok, failed = 0, 0
-    for src in files:
-        try:
-            dest = convert_file(md, src, args.output)
+    def on_result(src: Path, dest: Path | None, error: Exception | None) -> None:
+        if error is None:
             print(f"OK  {src} -> {dest}")
-            ok += 1
-        except Exception as exc:
-            print(f"ERROR {src}: {exc}", file=sys.stderr)
-            failed += 1
+        else:
+            print(f"ERROR {src}: {error}", file=sys.stderr)
+
+    ok, failed = convert_many(files, args.output, on_result)
 
     print(f"\nListo: {ok} convertidos, {failed} con error.")
     if failed:

@@ -17,12 +17,30 @@ jobs:
       - name: Instalar dependencias
         run: uv sync --dev
 
-      - name: Generar conversor.exe
-        run: >
-          uv run pyinstaller --onefile --console --name conversor
-          --collect-all markitdown --collect-all magika main.py
+      - name: Generar conversor.exe (interfaz grafica)
+        shell: pwsh
+        run: |
+          $iconArgs = @()
+          if (Test-Path "assets\icon.ico") { $iconArgs = @("--icon", "assets\icon.ico") }
+          uv run pyinstaller --onefile --windowed --name conversor `
+            --collect-all markitdown --collect-all magika `
+            --add-data "assets;assets" `
+            @iconArgs `
+            gui_main.py
+
+      - name: Generar conversor-cli.exe (consola)
+        shell: pwsh
+        run: |
+          $iconArgs = @()
+          if (Test-Path "assets\icon.ico") { $iconArgs = @("--icon", "assets\icon.ico") }
+          uv run pyinstaller --onefile --console --name conversor-cli `
+            --collect-all markitdown --collect-all magika `
+            @iconArgs `
+            main.py
 
       - name: Publicar en la Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/conversor.exe
+          files: |
+            dist/conversor.exe
+            dist/conversor-cli.exe
